@@ -6,7 +6,6 @@ android {
 
     defaultConfig {
         applicationId "com.jqd.rssmagdetect.ui"
-        minSdkVersion 9
         targetSdkVersion 17
     }
 
