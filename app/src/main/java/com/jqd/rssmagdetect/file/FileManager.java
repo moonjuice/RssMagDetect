@@ -19,6 +19,10 @@ import com.jqd.rssmagdetect.model.WiFiDataManager;
 import com.jqd.rssmagdetect.ui.MainActivity;
 import com.jqd.rssmagdetect.util.GlobalPara;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * @author jiangqideng@163.com
  * @date 2016-6-28 下午3:51:19
@@ -53,20 +57,30 @@ public class FileManager {
 			FileOutputStream fOut = new FileOutputStream(file);
 			OutputStream fos = fOut;
 			DataOutputStream dos = new DataOutputStream(fos);
-			for (int i = 0; i < WiFiDataManager.getInstance().dataCount; i++) {
-				// 存wifi的Rssi数据
-				for (int j = 0; j < WiFiDataManager.getInstance().dataBssid
-						.size(); j++) {
-					if (WiFiDataManager.getInstance().dataRssi.get(j)
-							.containsKey(i)) {
-						dos.write((WiFiDataManager.getInstance().dataRssi
-								.get(j).get(i) + "\t").getBytes());
-					} else {
+			JSONArray mResult = new JSONArray();
+			if (WiFiDataManager.getInstance().dataCount != 0) {
+				for (int i = 0; i < WiFiDataManager.getInstance().dataCount; i++) {
+					// 存wifi的Rssi数据
+					JSONObject object = new JSONObject();
+					object.put("SSID", WiFiDataManager.getInstance().dataWifiNames.get(i));
+					for (String bssid : WiFiDataManager.getInstance().dataBssid
+							.keySet()) {
+						object.put("BSSID", bssid);
+						int j = WiFiDataManager.getInstance().dataBssid.get(bssid);
+						if (WiFiDataManager.getInstance().dataRssi.get(j)
+								.containsKey(i)) {
+							object.put("RSSI", WiFiDataManager.getInstance().dataRssi
+									.get(j).get(i));
+						/*dos.write((WiFiDataManager.getInstance().dataRssi
+								.get(j).get(i) + "\t").getBytes());*/
+						}/* else {
 						dos.write((0 + "\t").getBytes()); // 没有的话就存0
+					}*/
 					}
-				}
-				// 存传感器数据，rss后面增加15个int
-				SensorsDataManager sdm = SensorsDataManager.getInstance();
+					mResult.put(object);
+					dos.write(mResult.toString().getBytes());
+					// 存传感器数据，rss后面增加15个int
+				/*SensorsDataManager sdm = SensorsDataManager.getInstance();
 				String outString = sdm.dataMagnetic.get(0).get(i) + "\t"
 						+ sdm.dataMagnetic.get(1).get(i) + "\t"
 						+ sdm.dataMagnetic.get(2).get(i) + "\t"
@@ -83,7 +97,8 @@ public class FileManager {
 						+ sdm.dataGravity.get(1).get(i) + "\t"
 						+ sdm.dataGravity.get(2).get(i) + "\n";
 				System.out.println(outString);
-				dos.write(outString.getBytes());
+				dos.write(outString.getBytes());*/
+				}
 			}
 			dos.close();
 
@@ -98,6 +113,10 @@ public class FileManager {
 					Toast.LENGTH_SHORT).show();
 			return;
 		} catch (IOException e) {
+			Toast.makeText(WiFiDataManager.getInstance().activity, "存储失败。",
+					Toast.LENGTH_SHORT).show();
+			return;
+		} catch (JSONException e) {
 			Toast.makeText(WiFiDataManager.getInstance().activity, "存储失败。",
 					Toast.LENGTH_SHORT).show();
 			return;
